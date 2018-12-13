@@ -1,6 +1,6 @@
 const dontVerify = () => {};
 
-export default ({model, flow}) => {
+export const testFlow = ({model, flow}) => {
 
   // Default values:
   let state = undefined;

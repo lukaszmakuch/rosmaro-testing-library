@@ -1,4 +1,4 @@
-import testFlow from './../src';
+import {testFlow} from './../src';
 
 const model = ({state = 0, action}) => {
   switch (action.type) {

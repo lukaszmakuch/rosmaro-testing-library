@@ -1,7 +1,7 @@
 {
   "name": "rosmaro-testing-library",
   "version": "0.0.1",
-  "description": "Test Rosmaro models.",
+  "description": "Test user flows step by step.",
   "main": "dist/index.js",
   "scripts": {
     "test": "jest --watch",
