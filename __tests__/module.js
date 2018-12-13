@@ -16,37 +16,42 @@ const model = ({state = 0, action}) => {
 test('testing a stateful flow', () => {
 
   let verifyArgs = [];
-  const verify = arg => verifyArgs.push(verifyArgs);
+  const verify = arg => verifyArgs.push(arg);
 
-  testFlow([
+  testFlow({
+    model,
+    flow: [
 
-    {
-      action: {type: 'READ'},
-      verifyResult: ({result}) => {
-        verify({afterReadingForTheFirstTime: result});
+      {
+        action: {type: 'READ'},
+        verifyResult: ({result}) => {
+          verify({afterReadingForTheFirstTime: result});
+        },
       },
-    },
 
-    {
-      action: {type: 'INCREMENT'},
-      verifyResult: ({result}) => {
-        verify({afterIncrementingForTheFirstTime: result});
+      {
+        action: {type: 'INCREMENT'},
+        verifyResult: ({result}) => {
+          verify({afterIncrementingForTheFirstTime: result});
+        },
       },
-    },
 
-    {
-      action: {type: 'READ'},
-      verifyResult: ({result}) => {
-        verify({afterReadingForTheSecondTime: result});
+      {action: {type: 'INCREMENT'}},
+
+      {
+        action: {type: 'READ'},
+        verifyResult: ({result}) => {
+          verify({afterReadingForTheSecondTime: result});
+        },
       },
-    },
 
-  ]);
+    ]
+  });
 
   expect(verifyArgs).toEqual([
     {afterReadingForTheFirstTime: 0},
     {afterIncrementingForTheFirstTime: undefined},
-    {afterReadingForTheSecondTime: 1},
+    {afterReadingForTheSecondTime: 2},
   ]);
 
 });
