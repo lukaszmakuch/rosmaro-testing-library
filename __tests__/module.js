@@ -2,10 +2,8 @@ import testFlow from './../src';
 
 const model = ({state = 0, action}) => {
   switch (action.type) {
-    case 'INCREMENT':
-      return {state: state + 1};
-    case 'DECREMENT':
-      return {state: state - 1};
+    case 'ADD':
+      return {state: state + action.value};
     case 'READ':
       return {state, result: state};
     default:
@@ -23,25 +21,34 @@ test('testing a stateful flow', () => {
     flow: [
 
       {
-        action: {type: 'READ'},
-        verifyResult: ({result}) => {
-          verify({afterReadingForTheFirstTime: result});
+        action: () => ({type: 'READ'}),
+        verifyResult: ({result, context}) => {
+          verify({afterReadingForTheFirstTime: {result, context}});
+          return {valueToAdd: 42};
         },
       },
 
       {
-        action: {type: 'INCREMENT'},
-        verifyResult: ({result}) => {
-          verify({afterIncrementingForTheFirstTime: result});
+        action: ({valueToAdd}) => ({type: 'ADD', value: valueToAdd}),
+        verifyResult: ({result, context}) => {
+          verify({addingTheFirstValue: {result, context}});
+          return {valueToAdd: context.valueToAdd + 1};
         },
       },
 
-      {action: {type: 'INCREMENT'}},
+      {
+        action: ({valueToAdd}) => ({type: 'ADD', value: valueToAdd}),
+        verifyResult: ({result, context}) => {
+          verify({addingTheSecondValue: {result, context}});
+        },
+      },
+
+      {action: () => ({type: 'READ'})},
 
       {
-        action: {type: 'READ'},
-        verifyResult: ({result}) => {
-          verify({afterReadingForTheSecondTime: result});
+        action: () => ({type: 'READ'}),
+        verifyResult: ({result, context}) => {
+          verify({afterReadingForTheSecondTime: {result, context}});
         },
       },
 
@@ -49,9 +56,10 @@ test('testing a stateful flow', () => {
   });
 
   expect(verifyArgs).toEqual([
-    {afterReadingForTheFirstTime: 0},
-    {afterIncrementingForTheFirstTime: undefined},
-    {afterReadingForTheSecondTime: 2},
+    {afterReadingForTheFirstTime: {result: 0, context: {}}},
+    {addingTheFirstValue: {result: undefined, context: {valueToAdd: 42}}},
+    {addingTheSecondValue: {result: undefined, context: {valueToAdd: 43}}},
+    {afterReadingForTheSecondTime: {result: 85, context: {valueToAdd: 43}}},
   ]);
 
 });
