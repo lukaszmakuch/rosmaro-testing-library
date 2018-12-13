@@ -8,7 +8,7 @@ export default ({model, flow}) => {
 
   // Every step consits of an action factory and an optional result verification
   // function.
-  flow.forEach(({action: makeAction, verifyResult = dontVerify}) => {
+  flow.forEach(({action: makeAction, verify = dontVerify}) => {
 
     // The new state comes from calling the model.
     const action = makeAction(context);
@@ -16,7 +16,7 @@ export default ({model, flow}) => {
     state = newState;
 
     // The result verification function may return a new context.
-    const maybeNewContext = verifyResult({result, context});
+    const maybeNewContext = verify({result, context});
     if (maybeNewContext !== undefined) {
       context = maybeNewContext;
     }

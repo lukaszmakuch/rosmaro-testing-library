@@ -22,7 +22,7 @@ test('testing a stateful flow', () => {
 
       {
         action: () => ({type: 'READ'}),
-        verifyResult: ({result, context}) => {
+        verify: ({result, context}) => {
           verify({afterReadingForTheFirstTime: {result, context}});
           return {valueToAdd: 42};
         },
@@ -30,7 +30,7 @@ test('testing a stateful flow', () => {
 
       {
         action: ({valueToAdd}) => ({type: 'ADD', value: valueToAdd}),
-        verifyResult: ({result, context}) => {
+        verify: ({result, context}) => {
           verify({addingTheFirstValue: {result, context}});
           return {valueToAdd: context.valueToAdd + 1};
         },
@@ -38,7 +38,7 @@ test('testing a stateful flow', () => {
 
       {
         action: ({valueToAdd}) => ({type: 'ADD', value: valueToAdd}),
-        verifyResult: ({result, context}) => {
+        verify: ({result, context}) => {
           verify({addingTheSecondValue: {result, context}});
         },
       },
@@ -47,7 +47,7 @@ test('testing a stateful flow', () => {
 
       {
         action: () => ({type: 'READ'}),
-        verifyResult: ({result, context}) => {
+        verify: ({result, context}) => {
           verify({afterReadingForTheSecondTime: {result, context}});
         },
       },
