@@ -1,4 +1,5 @@
 import {testFlow} from './../src';
+import {range} from 'ramda';
 
 const model = ({state = 0, action}) => {
   switch (action.type) {
@@ -18,8 +19,27 @@ test('testing a stateful flow', () => {
 
   testFlow({
     model,
-    initialContext: {valueToAdd: 42},
+    initialContext: {valueToAdd: 7},
     flow: [
+
+      [[[[
+        [({context}) => range(0, context.valueToAdd - 1).map(() => ([
+          () => ({
+            action: ({valueToAdd}) => ({type: 'ADD', value: 1}),
+            verify: ({result, context}) => {
+              verify({addingFromAMap: {result, context}});
+              return {valueToAdd: context.valueToAdd};
+            }
+          })
+        ]))],
+        {
+          action: ({valueToAdd}) => ({type: 'ADD', value: 1}),
+          verify: ({result, context}) => {
+            verify({addingOutisdeTheMap: {result, context}});
+            return {valueToAdd: context.valueToAdd + 1};
+          }
+        }
+      ]]]],
 
       {
         action: () => ({type: 'READ'}),
@@ -29,18 +49,10 @@ test('testing a stateful flow', () => {
         },
       },
 
-      [[[{
-        action: ({valueToAdd}) => ({type: 'ADD', value: valueToAdd}),
-        verify: ({result, context}) => {
-          verify({addingTheFirstValue: {result, context}});
-          return {valueToAdd: context.valueToAdd + 1};
-        },
-      }]]],
-
       [[{
         action: ({valueToAdd}) => ({type: 'ADD', value: valueToAdd}),
         verify: ({result, context}) => {
-          verify({addingTheSecondValue: {result, context}});
+          verify({addingTheSecondTime: {result, context}});
         },
       },
 
@@ -49,7 +61,7 @@ test('testing a stateful flow', () => {
       {
         action: () => ({type: 'READ'}),
         verify: ({result, context}) => {
-          verify({afterReadingForTheSecondTime: {result, context}});
+          verify({reading: {result, context}});
         },
       },
 
@@ -57,10 +69,19 @@ test('testing a stateful flow', () => {
   });
 
   expect(verifyArgs).toEqual([
-    {afterReadingForTheFirstTime: {result: 0, context: {valueToAdd: 42}}},
-    {addingTheFirstValue: {result: undefined, context: {valueToAdd: 42}}},
-    {addingTheSecondValue: {result: undefined, context: {valueToAdd: 43}}},
-    {afterReadingForTheSecondTime: {result: 85, context: {valueToAdd: 43}}},
+    {addingFromAMap: {result: undefined, context: {valueToAdd: 7}}},
+    {addingFromAMap: {result: undefined, context: {valueToAdd: 7}}},
+    {addingFromAMap: {result: undefined, context: {valueToAdd: 7}}},
+
+    {addingFromAMap: {result: undefined, context: {valueToAdd: 7}}},
+    {addingFromAMap: {result: undefined, context: {valueToAdd: 7}}},
+    {addingFromAMap: {result: undefined, context: {valueToAdd: 7}}},
+    
+    {addingOutisdeTheMap: {result: undefined, context: {valueToAdd: 7}}},
+
+    {afterReadingForTheFirstTime: {result: 7, context: {valueToAdd: 8}}},
+    {addingTheSecondTime: {result: undefined, context: {valueToAdd: 8}}},
+    {reading: {result: 15, context: {valueToAdd: 8}}},
   ]);
 
 });

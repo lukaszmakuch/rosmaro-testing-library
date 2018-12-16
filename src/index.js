@@ -1,27 +1,55 @@
-import {flatten} from 'ramda';
+import {flatten, is, head, tail, isEmpty} from 'ramda';
 
 const dontVerify = () => {};
 
-export const testFlow = ({model, flow, initialContext = {}}) => {
-
-  // Default values:
-  let state = undefined;
-  let context = initialContext;
-
-  // Every step consits of an action factory and an optional result verification
-  // function.
-  flatten(flow).forEach(({action: makeAction, verify = dontVerify}) => {
-
-    // The new state comes from calling the model.
-    const action = makeAction(context);
-    const {state: newState, result} = model({state, action});
-    state = newState;
-
-    // The result verification function may return a new context.
-    const maybeNewContext = verify({result, context});
-    if (maybeNewContext !== undefined) {
-      context = maybeNewContext;
+const performTest = ({step, context, model, state}) => {
+  if (is(Array)(step)) {
+    if (isEmpty(step)) {
+      return {state, context};
+    } else {
+      const headCallResult = performTest({
+        step: head(step),
+        context,
+        model,
+        state
+      });
+      return performTest({
+        step: tail(step),
+        context: headCallResult.context,
+        state: headCallResult.state,
+        model
+      });
     }
-    
-  });
+  } else if (is(Function)(step)) {
+    return performTest({
+      step: step({context}),
+      context,
+      model,
+      state
+    });
+  } else {
+    const modelCallResult = model({
+      state,
+      action: step.action(context)
+    });
+    if (step.verify) {
+      const maybeNewContext = step.verify({
+        result: modelCallResult.result,
+        context
+      }); 
+      return {
+        state: modelCallResult.state,
+        context: maybeNewContext || context
+      };
+    } else {
+      return {
+        state: modelCallResult.state,
+        context
+      };
+    }
+  }
+}
+
+export const testFlow = ({model, flow, initialContext = {}}) => {
+  performTest({model, state: undefined, context: initialContext, step: flow});
 };
