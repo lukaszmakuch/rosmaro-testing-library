@@ -14,7 +14,9 @@
   ],
   "author": "Łukasz Makuch <kontakt@lukaszmakuch.pl> (https://lukaszmakuch.pl)",
   "license": "MIT",
-  "dependencies": {},
+  "dependencies": {
+    "ramda": "^0.26.1"
+  },
   "devDependencies": {
     "babel-cli": "^6.24.1",
     "babel-preset-env": "^1.4.0",
