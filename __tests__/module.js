@@ -25,7 +25,7 @@ test('testing a stateful flow', () => {
       // Simply an action.
       {action: {type: 'ADD', value: 1}},
 
-      // Verify result.
+      // Verify the result.
       {
         action: {type: 'READ'},
         verify: ({result}) => {
@@ -38,7 +38,7 @@ test('testing a stateful flow', () => {
         action: {type: 'ADD', value: context.valueToAdd}
       })],
 
-      // Verify result. (in two arrays)
+      // Verify the result. (in two arrays)
       [[({
         action: {type: 'READ'},
         verify: ({result}) => {
@@ -62,7 +62,7 @@ test('testing a stateful flow', () => {
         action: {type: 'ADD', value: context.valueToAdd}
       }),
 
-      // Verify result.
+      // Verify the result.
       ({
         action: {type: 'READ'},
         verify: ({result}) => {
@@ -70,7 +70,7 @@ test('testing a stateful flow', () => {
         }
       }),
 
-      // One next step.
+      // Just one next step.
       ({
         action: {type: 'ADD', value: 0},
         next: {
@@ -100,7 +100,7 @@ test('testing a stateful flow', () => {
         }
       }),
 
-      // Verify result.
+      // Verify the result.
       ({
         action: {type: 'READ'},
         verify: ({result}) => {
