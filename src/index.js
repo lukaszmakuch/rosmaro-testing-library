@@ -1,11 +1,16 @@
 import {flatten, is, head, tail, isEmpty} from 'ramda';
 
-const dontVerify = () => {};
+const getNext = ({next, result}) =>
+  next
+    ? is(Function)(next)
+      ? next({result}) || {}
+      : next || {}
+    : {};
 
 const performTest = ({step, context, model, state}) => {
   if (is(Array)(step)) {
     if (isEmpty(step)) {
-      return {state, context};
+      return {state, context, step: []};
     } else {
       const headCallResult = performTest({
         step: head(step),
@@ -14,7 +19,7 @@ const performTest = ({step, context, model, state}) => {
         state
       });
       return performTest({
-        step: tail(step),
+        step: [...headCallResult.step, ...tail(step)],
         context: headCallResult.context,
         state: headCallResult.state,
         model
@@ -30,23 +35,28 @@ const performTest = ({step, context, model, state}) => {
   } else {
     const modelCallResult = model({
       state,
-      action: step.action(context)
+      action: step.action,
     });
+
     if (step.verify) {
-      const maybeNewContext = step.verify({
+      step.verify({
         result: modelCallResult.result,
         context
-      }); 
-      return {
-        state: modelCallResult.state,
-        context: maybeNewContext || context
-      };
-    } else {
-      return {
-        state: modelCallResult.state,
-        context
-      };
+      })
     }
+
+    const result = modelCallResult.result;
+    const next = getNext({
+      result,
+      next: step.next
+    });
+    const nextContext = next.context || context;
+    const nextStep = [next.step || []];
+    return {
+      state: modelCallResult.state,
+      context: nextContext,
+      step: nextStep,
+    };
   }
 }
 

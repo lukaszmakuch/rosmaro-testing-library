@@ -4,7 +4,7 @@ import {range} from 'ramda';
 const model = ({state = 0, action}) => {
   switch (action.type) {
     case 'ADD':
-      return {state: state + action.value};
+      return {state: state + action.value, result: {justAdded: action.value}};
     case 'READ':
       return {state, result: state};
     default:
@@ -19,69 +19,108 @@ test('testing a stateful flow', () => {
 
   testFlow({
     model,
-    initialContext: {valueToAdd: 7},
+    initialContext: {valueToAdd: 4},
     flow: [
 
-      [[[[
-        [({context}) => range(0, context.valueToAdd - 1).map(() => ([
-          () => ({
-            action: ({valueToAdd}) => ({type: 'ADD', value: 1}),
-            verify: ({result, context}) => {
-              verify({addingFromAMap: {result, context}});
-              return {valueToAdd: context.valueToAdd};
-            }
-          })
-        ]))],
-        {
-          action: ({valueToAdd}) => ({type: 'ADD', value: 1}),
-          verify: ({result, context}) => {
-            verify({addingOutisdeTheMap: {result, context}});
-            return {valueToAdd: context.valueToAdd + 1};
+      // Simply an action.
+      {action: {type: 'ADD', value: 1}},
+
+      // Verify result.
+      {
+        action: {type: 'READ'},
+        verify: ({result}) => {
+          verify({afterAdding1: {result}})
+        }
+      },
+
+      // Action based on the context. (in an array)
+      [({context}) => ({
+        action: {type: 'ADD', value: context.valueToAdd}
+      })],
+
+      // Verify result. (in two arrays)
+      [[({
+        action: {type: 'READ'},
+        verify: ({result}) => {
+          verify({afterAddingValueFromTheContext: {result}})
+        }
+      })]],
+
+      // Update the test context.
+      ({context}) => ({
+        action: {type: 'READ'},
+        next: ({result}) => ({
+          context: {
+            ...context,
+            valueToAdd: result + context.valueToAdd
+          }
+        })
+      }),
+
+      // Add the value from the context.
+      ({context}) => ({
+        action: {type: 'ADD', value: context.valueToAdd}
+      }),
+
+      // Verify result.
+      ({
+        action: {type: 'READ'},
+        verify: ({result}) => {
+          verify({afterUpdatingTheContext: {result}})
+        }
+      }),
+
+      // One next step.
+      ({
+        action: {type: 'ADD', value: 0},
+        next: {
+          step: {
+            action: {type: 'ADD', value: 1},
           }
         }
-      ]]]],
+      }),
 
-      {
-        action: () => ({type: 'READ'}),
-        verify: ({result, context}) => {
-          verify({afterReadingForTheFirstTime: {result, context}});
-          return {valueToAdd: context.valueToAdd};
-        },
-      },
+      // Dynamic steps generated based on the result and context.
+      ({
+        action: {type: 'READ'},
+        next: ({result}) => {
+          const dynamic = ({context}) => ({
+            action: {type: 'ADD', value: context.valueToAdd},
+            next: ({result}) => {
+              if (result.justAdded < 11) {
+                return {
+                  step: dynamic,
+                  context: {...context, valueToAdd: context.valueToAdd + 1}
+                };
+              }
+            }
+          });
 
-      [[{
-        action: ({valueToAdd}) => ({type: 'ADD', value: valueToAdd}),
-        verify: ({result, context}) => {
-          verify({addingTheSecondTime: {result, context}});
-        },
-      },
+          return {step: dynamic};
+        }
+      }),
 
-      {action: () => ({type: 'READ'})}]],
-
-      {
-        action: () => ({type: 'READ'}),
-        verify: ({result, context}) => {
-          verify({reading: {result, context}});
-        },
-      },
+      // Verify result.
+      ({
+        action: {type: 'READ'},
+        verify: ({result}) => {
+          verify({afterTheDynamicStep: {result}})
+        }
+      }),
 
     ]
   });
 
   expect(verifyArgs).toEqual([
-    {addingFromAMap: {result: undefined, context: {valueToAdd: 7}}},
-    {addingFromAMap: {result: undefined, context: {valueToAdd: 7}}},
-    {addingFromAMap: {result: undefined, context: {valueToAdd: 7}}},
 
-    {addingFromAMap: {result: undefined, context: {valueToAdd: 7}}},
-    {addingFromAMap: {result: undefined, context: {valueToAdd: 7}}},
-    {addingFromAMap: {result: undefined, context: {valueToAdd: 7}}},
+    {afterAdding1: {result: 1}},
     
-    {addingOutisdeTheMap: {result: undefined, context: {valueToAdd: 7}}},
+    {afterAddingValueFromTheContext: {result: 5}},
 
-    {afterReadingForTheFirstTime: {result: 7, context: {valueToAdd: 8}}},
-    {addingTheSecondTime: {result: undefined, context: {valueToAdd: 8}}},
-    {reading: {result: 15, context: {valueToAdd: 8}}},
+    {afterUpdatingTheContext: {result: 14}},
+
+    {afterTheDynamicStep: {result: 45}},
+
   ]);
 
 });
