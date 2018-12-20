@@ -23,33 +23,33 @@ test('testing a stateful flow', () => {
     flow: [
 
       // Simply an action.
-      {action: {type: 'ADD', value: 1}},
+      {feed: {type: 'ADD', value: 1}},
 
       // Verify the result.
       {
-        action: {type: 'READ'},
-        verify: ({result}) => {
+        feed: {type: 'READ'},
+        consume: ({result}) => {
           verify({afterAdding1: {result}})
         }
       },
 
       // Action based on the context. (in an array)
       [({context}) => ({
-        action: {type: 'ADD', value: context.valueToAdd}
+        feed: {type: 'ADD', value: context.valueToAdd}
       })],
 
       // Verify the result. (in two arrays)
       [[({
-        action: {type: 'READ'},
-        verify: ({result}) => {
+        feed: {type: 'READ'},
+        consume: ({result}) => {
           verify({afterAddingValueFromTheContext: {result}})
         }
       })]],
 
       // Update the test context.
       ({context}) => ({
-        action: {type: 'READ'},
-        next: ({result}) => ({
+        feed: {type: 'READ'},
+        consume: ({result}) => ({
           context: {
             ...context,
             valueToAdd: result + context.valueToAdd
@@ -59,34 +59,34 @@ test('testing a stateful flow', () => {
 
       // Add the value from the context.
       ({context}) => ({
-        action: {type: 'ADD', value: context.valueToAdd}
+        feed: {type: 'ADD', value: context.valueToAdd}
       }),
 
       // Verify the result.
       ({
-        action: {type: 'READ'},
-        verify: ({result}) => {
+        feed: {type: 'READ'},
+        consume: ({result}) => {
           verify({afterUpdatingTheContext: {result}})
         }
       }),
 
       // Just one next step.
       ({
-        action: {type: 'ADD', value: 0},
-        next: {
+        feed: {type: 'ADD', value: 0},
+        consume: () => ({
           step: {
-            action: {type: 'ADD', value: 1},
+            feed: {type: 'ADD', value: 1},
           }
-        }
+        })
       }),
 
       // Dynamic steps generated based on the result and context.
       ({
-        action: {type: 'READ'},
-        next: ({result}) => {
+        feed: {type: 'READ'},
+        consume: ({result}) => {
           const dynamic = ({context}) => ({
-            action: {type: 'ADD', value: context.valueToAdd},
-            next: ({result}) => {
+            feed: {type: 'ADD', value: context.valueToAdd},
+            consume: ({result}) => {
               if (result.justAdded < 11) {
                 return {
                   step: dynamic,
@@ -102,8 +102,8 @@ test('testing a stateful flow', () => {
 
       // Verify the result.
       ({
-        action: {type: 'READ'},
-        verify: ({result}) => {
+        feed: {type: 'READ'},
+        consume: ({result}) => {
           verify({afterTheDynamicStep: {result}})
         }
       }),

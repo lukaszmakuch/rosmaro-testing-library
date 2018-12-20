@@ -1,12 +1,5 @@
 import {flatten, is, head, tail, isEmpty} from 'ramda';
 
-const getNext = ({next, result}) =>
-  next
-    ? is(Function)(next)
-      ? next({result}) || {}
-      : next || {}
-    : {};
-
 const performTest = ({step, context, model, state}) => {
   if (is(Array)(step)) {
     if (isEmpty(step)) {
@@ -35,21 +28,17 @@ const performTest = ({step, context, model, state}) => {
   } else {
     const modelCallResult = model({
       state,
-      action: step.action,
+      action: step.feed,
     });
-
-    if (step.verify) {
-      step.verify({
-        result: modelCallResult.result,
-        context
-      })
-    }
 
     const result = modelCallResult.result;
-    const next = getNext({
-      result,
-      next: step.next
-    });
+    const next = step.consume
+      ? step.consume({
+        result,
+        context
+      }) || {}
+      : {};
+
     const nextContext = next.context || context;
     const nextStep = [next.step || []];
     return {
