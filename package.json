@@ -10,7 +10,8 @@
   },
   "keywords": [
     "rosmaro",
-    "testing"
+    "testing",
+    "FSM"
   ],
   "author": "Łukasz Makuch <kontakt@lukaszmakuch.pl> (https://lukaszmakuch.pl)",
   "license": "MIT",
