@@ -78,3 +78,7 @@ import {consumeActionsWithEffects} from 'rosmaro-testing-library';
   }
 },
 ```
+
+## Blog posts
+
+- [Testing the TodoMVC app](https://lukaszmakuch.pl/post/testing-the-todomvc-app)
