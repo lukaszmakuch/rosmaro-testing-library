@@ -57,30 +57,43 @@ testFlow({
 
 For a more detailed description of this function, please check out the unit tests.
 
-## consumeActionsWithEffects and assertUnconsumedEffects
+## consumeActionsWithEffects
 
 This is especially useful if we want to feed the model with actions build based on the result of calling another action. 
 
 An example may be a `{type: 'RENDER'}` action which results is some UI. After asserting that the UI consists of the expected data, we would also like to make sure that it somehow dispatches the proper actions back to the model. Some of the actions may cause (return) `{type: 'DISPATCH'}` effects. This function handles all the dispatched actions recursively.
 
 ```javascript
-import {consumeActionsWithEffects, assertUnconsumedEffects} from 'rosmaro-testing-library';
+import {consumeActionsWithEffects} from 'rosmaro-testing-library';
 // ...
-[
-  {
-    feed: {type: 'RENDER'},
-    consume: ({result: {UI}}) => {
-      // Just an example how the UI may return an action to dispatch.
-      const actionToDispatch = UI.click();
-      return {
-        step: consumeActionsWithEffects([actionToDispatch])
-      };
-    }
-  },
-  assertUnconsumedEffects(effects => expect(effects).toEqual([
-    {type: 'AN_EFFECT_NOT_CONSUMED_BY_consumeActionsWithEffects'}
-  ])),
-]
+
+{
+  feed: {type: 'RENDER'},
+  consume: ({result: {UI}}) => {
+    // Just an example how the UI may return an action to dispatch.
+    const actionToDispatch = UI.click();
+    return {
+      step: consumeActionsWithEffects([actionToDispatch])
+    };
+  }
+},
+```
+
+## consumeEffects
+
+Every time an action causes some effects, they are stored in the testContext.
+This is a helper to build a step that allows to verify the recently returned effects and then remove them from the list of recent effect.
+
+```javascript
+import {consumeEffects} from 'rosmaro-testing-library';
+// ...
+
+consumeEffects(effects => expect(effects).toEqual([
+  {type: 'FIRST'},
+  {type: 'SECOND'},
+  {type: 'THIRD'},
+])),
+
 ```
 
 ## Blog posts

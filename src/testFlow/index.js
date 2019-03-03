@@ -1,4 +1,21 @@
-import {flatten, is, head, tail, isEmpty} from 'ramda';
+import {
+  flatten,
+  is,
+  head,
+  tail,
+  isEmpty,
+  isNil,
+  complement,
+  filter
+} from 'ramda';
+
+const addRecentEffects = (testContext, recentEffects) => ({
+  ...testContext,
+  recentEffects: filter(complement(isNil), flatten([
+    testContext.recentEffects || [],
+    recentEffects
+  ]))
+});
 
 const performTest = ({step, testContext, model, state}) => {
   if (is(Array)(step)) {
@@ -31,15 +48,16 @@ const performTest = ({step, testContext, model, state}) => {
       action: step.feed,
     });
 
-    const result = modelCallResult.result;
+    const result = modelCallResult.result || {};
+    const testContextWithEffects = addRecentEffects(testContext, result.effect);
     const next = step.consume
       ? step.consume({
         result,
-        testContext
+        testContext: testContextWithEffects
       }) || {}
       : {};
 
-    const nextTestContext = next.testContext || testContext;
+    const nextTestContext = next.testContext || testContextWithEffects;
     const nextStep = [next.step || []];
     return {
       state: modelCallResult.state,
