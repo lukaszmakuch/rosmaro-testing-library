@@ -1,4 +1,4 @@
-import {testFlow, consumeActionsWithEffects, assertUnconsumedEffects} from './../src';
+import {testFlow, consumeActionsWithEffects} from './../src';
 import {lensProp, over, append} from 'ramda';
 
 const addTriggeredAction = ({state, action}) =>
@@ -112,8 +112,6 @@ test('consuming actions with effects', () => {
     model,
     flow: [
 
-      assertUnconsumedEffects(effects => expect(effects).toEqual([])),
-
       {
         feed: {type: 'start'},
         consume: ({result: {action}}) => {
@@ -139,14 +137,6 @@ test('consuming actions with effects', () => {
           ]);
         }
       },
-
-      assertUnconsumedEffects(effects => expect(effects).toEqual([
-        {type: 'THE_FIRST_OF_OTHER_EFFECTS'},
-        {type: 'THE_SECOND_OF_OTHER_EFFECTS'},
-        {type: 'THE_THIRD_OF_OTHER_EFFECTS'}
-      ])),
-
-      assertUnconsumedEffects(effects => expect(effects).toEqual([])),
 
     ]
   });
