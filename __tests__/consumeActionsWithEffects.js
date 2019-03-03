@@ -1,4 +1,4 @@
-import {testFlow, consumeActionsWithEffects} from './../src';
+import {testFlow, consumeActionsWithEffects, assertUnconsumedEffects} from './../src';
 import {lensProp, over, append} from 'ramda';
 
 const addTriggeredAction = ({state, action}) =>
@@ -24,7 +24,10 @@ const model = ({state = {triggered: []}, action}) => {
     case 'B':
       return {
         result: {
-          effect: {type: 'DISPATCH', action: {type: 'C'}}
+          effect: [
+            {type: 'DISPATCH', action: {type: 'C'}},
+            {type: 'THE_FIRST_OF_OTHER_EFFECTS'},
+          ]
         },
         state: addTriggeredAction({state, action: 'B'})
       };
@@ -47,7 +50,7 @@ const model = ({state = {triggered: []}, action}) => {
           effect: [
             {type: 'DISPATCH', action: {type: 'D1.2.1.1'}},
             {type: 'DISPATCH', action: {type: 'D1.2.2'}},
-            {type: 'SOME_OTHER_EFFECT'},
+            {type: 'THE_SECOND_OF_OTHER_EFFECTS'},
           ]
         },
         state: addTriggeredAction({state, action: 'D1.1'})
@@ -68,7 +71,7 @@ const model = ({state = {triggered: []}, action}) => {
         return {
           result: {
             effect: [
-              {type: 'SOME_OTHER_EFFECT'},
+              {type: 'THE_THIRD_OF_OTHER_EFFECTS'},
             ]
           },
           state: addTriggeredAction({state, action: 'D1.2.1.2'})
@@ -109,6 +112,8 @@ test('consuming actions with effects', () => {
     model,
     flow: [
 
+      assertUnconsumedEffects(effects => expect(effects).toEqual([])),
+
       {
         feed: {type: 'start'},
         consume: ({result: {action}}) => {
@@ -120,7 +125,7 @@ test('consuming actions with effects', () => {
 
       {
         feed: {type: 'READ_TRIGGERED'},
-        consume: ({result}) => {
+        consume: ({result, testContext}) => {
           expect(result).toEqual([
             'A',
             'B',
@@ -133,7 +138,15 @@ test('consuming actions with effects', () => {
             'D3.1'
           ]);
         }
-      }
+      },
+
+      assertUnconsumedEffects(effects => expect(effects).toEqual([
+        {type: 'THE_FIRST_OF_OTHER_EFFECTS'},
+        {type: 'THE_SECOND_OF_OTHER_EFFECTS'},
+        {type: 'THE_THIRD_OF_OTHER_EFFECTS'}
+      ])),
+
+      assertUnconsumedEffects(effects => expect(effects).toEqual([])),
 
     ]
   });
