@@ -96,6 +96,71 @@ consumeEffects(effects => expect(effects).toEqual([
 
 ```
 
+## makeTreeRunner
+
+If you prefer a tree structure than over a list of steps, you may find this function useful.
+
+For example, instead of writing this:
+```javascript
+test('root > finished branch 1A > get something extra', () => configuredTestFlow([
+  rootStep,
+  branch1A,
+  finishBranch1,
+  extraFor1A,
+]);
+
+test('root > finished branch 1B', () => configuredTestFlow([
+  rootStep,
+  branch1B,
+  finishBranch1,
+]);
+
+test('root > Oops! Branch 1B failed!', () => configuredTestFlow([
+  rootStep,
+  branch1B,
+  failBranch1,
+]);
+```
+
+You may write this:
+```javascript
+import {makeTreeRunner} from 'rosmaro-testing-library';
+
+const tree = makeTreeRunner()(
+  (label, steps) => test(label, () => configuredTestFlow(steps))
+);
+
+tree(
+  ['root', rootStep, [
+    [branch1A, [
+      ['finished branch 1A', finishBranch1, [
+        ['get something extra', extraFor1A]
+      ]]
+    ]],
+    [branch1B, [
+      ['finished branch 1B', finishBranch1],
+      ['Oops! Branch 1B failed!', failBranch1]
+    ]]
+  ]]
+);
+
+```
+
+Where `configuredTestFlow` is for example something like this:
+```javascript
+import {testFlow} from 'rosmaro-testing-library';
+
+const initialTestContext = {myInitial: 'testContext'};
+
+const model = rosmaro({graph: myGraph, bindings: myBindings});
+
+export const configuredTestFlow = flow => testFlow({
+  model,
+  initialTestContext,
+  flow
+});
+```
+
 ## Blog posts
 
 - [Testing the TodoMVC app](https://lukaszmakuch.pl/post/testing-the-todomvc-app)
