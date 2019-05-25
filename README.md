@@ -33,7 +33,7 @@ testFlow({
       // *result* is what the model returned.
       consume: ({result}) => {
         // We can make assertions here.
-        expect(state).toEqual(4);
+        expect(result).toEqual(4);
         const newTestContext = {...testContext, valueToAdd: 11};
         return {
           // We can also return an updated version of the testContext.
